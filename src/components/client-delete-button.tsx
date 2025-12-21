@@ -3,7 +3,6 @@
 import { Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react";
 import { useState, useEffect } from "react"
 
 export function ClientDeleteButton({ clientId, clientName }: { clientId: string, clientName: string }) {
