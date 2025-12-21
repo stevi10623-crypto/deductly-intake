@@ -213,14 +213,14 @@ function ClientDetailContent() {
                                             <div className="flex flex-wrap gap-4">
                                                 {intakeData[`${section.id}_files`] && intakeData[`${section.id}_files`].length > 0 ? (
                                                     intakeData[`${section.id}_files`].map((file: any, idx: number) => {
-                                                        const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://YOUR_PROJECT_ID.supabase.co';
-                                                        const fileUrl = `${baseUrl}/storage/v1/object/public/intake-documents/${file.path}`;
-                                                        console.log(`[Debug] File link for ${file.name}:`, fileUrl);
+                                                        const { data: { publicUrl } } = supabase.storage
+                                                            .from('intake-documents')
+                                                            .getPublicUrl(file.path);
 
                                                         return (
                                                             <a
                                                                 key={idx}
-                                                                href={fileUrl}
+                                                                href={publicUrl}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-sm text-neutral-300 hover:text-white hover:border-neutral-600 transition-all"

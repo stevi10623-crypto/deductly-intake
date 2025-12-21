@@ -21,18 +21,12 @@ export default function Home() {
           The modern tax intake platform for forward-thinking accounting firms.
         </p>
 
-        <div className="flex gap-4 justify-center">
+        <div className="flex justify-center">
           <Link
             href="/admin"
-            className="rounded-full bg-white text-black px-6 py-3 font-semibold hover:bg-neutral-200 transition-colors"
+            className="rounded-full bg-white text-black px-8 py-3 font-semibold hover:bg-neutral-200 transition-colors"
           >
             Firm Login
-          </Link>
-          <Link
-            href="/intake/demo-token"
-            className="rounded-full border border-neutral-800 px-6 py-3 font-semibold hover:bg-neutral-900 transition-colors"
-          >
-            Client Demo
           </Link>
         </div>
       </div>
