@@ -1,4 +1,3 @@
-```
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -15,7 +14,7 @@ export default function UserManagementPage() {
     const [isAdding, setIsAdding] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
-    
+
     const supabase = createClient()
     const router = useRouter()
 
@@ -74,283 +73,288 @@ export default function UserManagementPage() {
         const newRole = currentRole === 'admin' ? 'office' : 'admin'
         if (!confirm(`Change this user's role to ${newRole.toUpperCase()}?`)) return
 
-try {
-    const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', userId)
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ role: newRole })
+                .eq('id', userId)
 
-    if (error) throw error
-    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
-} catch (err: any) {
-    alert(`Error: ${err.message}`)
-}
+            if (error) throw error
+            setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
+        } catch (err: any) {
+            alert(`Error: ${err.message}`)
+        }
     }
 
-const deleteUser = async (userId: string, name: string) => {
-    if (!confirm(`Are you sure you want to remove ${name}? This will revoke their access immediately.`)) return
+    const deleteUser = async (userId: string, name: string) => {
+        if (!confirm(`Are you sure you want to remove ${name}? This will revoke their access immediately.`)) return
 
-    try {
-        const { error } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', userId)
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', userId)
 
-        if (error) throw error
-        setUsers(users.filter(u => u.id !== userId))
-    } catch (err: any) {
-        alert(`Error: ${err.message}`)
+            if (error) throw error
+            setUsers(users.filter(u => u.id !== userId))
+        } catch (err: any) {
+            alert(`Error: ${err.message}`)
+        }
     }
-}
 
-const deleteInvite = async (email: string) => {
-    if (!confirm(`Cancel invitation for ${email}?`)) return
-    try {
-        const { error } = await supabase.from('invites').delete().eq('email', email)
-        if (error) throw error
-        setInvites(invites.filter(i => i.email !== email))
-    } catch (err: any) {
-        alert(err.message)
+    const deleteInvite = async (email: string) => {
+        if (!confirm(`Cancel invitation for ${email}?`)) return
+        try {
+            const { error } = await supabase.from('invites').delete().eq('email', email)
+            if (error) throw error
+            setInvites(invites.filter(i => i.email !== email))
+        } catch (err: any) {
+            alert(err.message)
+        }
     }
-}
 
-const handleAddMember = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const name = formData.get('name') as string
-    const role = formData.get('role') as string
+    const handleAddMember = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const formData = new FormData(e.currentTarget)
+        const email = (formData.get('email') as string).toLowerCase()
+        const name = formData.get('name') as string
+        const role = formData.get('role') as string
 
-    try {
-        const { error } = await supabase.from('invites').insert({
-            email,
-            full_name: name,
-            role
-        })
-        if (error) throw error
-        setIsAdding(false)
-        fetchData()
-    } catch (err: any) {
-        alert(`Error: ${err.message}`)
+        try {
+            const { error } = await supabase.from('invites').insert({
+                email,
+                full_name: name,
+                role
+            })
+            if (error) throw error
+            setIsAdding(false)
+            fetchData()
+        } catch (err: any) {
+            alert(`Error: ${err.message}`)
+        }
     }
-}
 
-const startEditing = (user: any) => {
-    setEditingId(user.id)
-    setEditName(user.full_name || '')
-}
-
-const saveName = async (userId: string) => {
-    try {
-        const { error } = await supabase
-            .from('profiles')
-            .update({ full_name: editName })
-            .eq('id', userId)
-
-        if (error) throw error
-        setUsers(users.map(u => u.id === userId ? { ...u, full_name: editName } : u))
-        setEditingId(null)
-    } catch (err: any) {
-        alert(err.message)
+    const startEditing = (user: any) => {
+        setEditingId(user.id)
+        setEditName(user.full_name || '')
     }
-}
 
-const triggerPasswordReset = async (email: string) => {
-    if (!confirm(`Send a password reset link to ${email}?`)) return
-    try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/login`,
-        })
-        if (error) throw error
-        alert('Password reset email sent!')
-    } catch (err: any) {
-        alert(err.message)
+    const saveName = async (userId: string) => {
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ full_name: editName })
+                .eq('id', userId)
+
+            if (error) throw error
+            setUsers(users.map(u => u.id === userId ? { ...u, full_name: editName } : u))
+            setEditingId(null)
+        } catch (err: any) {
+            alert(err.message)
+        }
     }
-}
 
-if (loading) {
+    const triggerPasswordReset = async (email: string) => {
+        if (!confirm(`Send a password reset link to ${email}?`)) return
+        try {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/login`,
+            })
+            if (resetError) throw resetError
+            alert('Password reset email sent!')
+        } catch (err: any) {
+            alert(err.message)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Loader2 className="animate-spin text-neutral-500" />
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="bg-red-950 border border-red-800 rounded-md p-4 text-red-400">
+                {error}
+            </div>
+        )
+    }
+
     return (
-        <div className="flex h-64 items-center justify-center">
-            <Loader2 className="animate-spin text-neutral-500" />
-        </div>
-    )
-}
-
-if (error) {
-    return (
-        <div className="bg-red-950 border border-red-800 rounded-md p-4 text-red-400">
-            {error}
-        </div>
-    )
-}
-
-return (
-    <div className="space-y-8">
-        <div className="flex items-center justify-between">
-            <div>
-                <h2 className="text-2xl font-bold text-white">Team Management</h2>
-                <p className="text-neutral-400">Manage firm administrators and office staff.</p>
-            </div>
-            <button
-                onClick={() => setIsAdding(!isAdding)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-colors"
-            >
-                <UserPlus size={18} />
-                Add Team Member
-            </button>
-        </div>
-
-        {isAdding && (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 animate-in fade-in slide-in-from-top-4">
-                <h3 className="text-lg font-medium text-white mb-4">Invite New Member</h3>
-                <form onSubmit={handleAddMember} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-1">
-                        <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Full Name</label>
-                        <input name="name" required className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white" placeholder="John Doe" />
-                    </div>
-                    <div className="md:col-span-1">
-                        <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Email</label>
-                        <input name="email" type="email" required className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white" placeholder="email@firm.com" />
-                    </div>
-                    <div className="md:col-span-1">
-                        <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Role</label>
-                        <select name="role" className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white">
-                            <option value="office">Office Staff</option>
-                            <option value="admin">Administrator</option>
-                        </select>
-                    </div>
-                    <div className="flex items-end gap-2">
-                        <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium">Add</button>
-                        <button type="button" onClick={() => setIsAdding(false)} className="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded font-medium text-sm">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        )}
-
-        <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden">
-            <div className="p-4 border-b border-neutral-800 bg-neutral-900/50">
-                <h3 className="text-sm font-medium text-white font-mono uppercase tracking-wider">Active Members ({users.length})</h3>
+        <div className="space-y-8">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold text-white">Team Management</h2>
+                    <p className="text-neutral-400">Manage firm administrators and office staff.</p>
+                </div>
+                <button
+                    onClick={() => setIsAdding(!isAdding)}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-colors"
+                >
+                    <UserPlus size={18} />
+                    Add Team Member
+                </button>
             </div>
 
-            <div className="divide-y divide-neutral-800">
-                {users.map((user) => (
-                    <div key={user.id} className="p-4 flex items-center justify-between hover:bg-neutral-900/50 transition-colors group">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400">
-                                <User size={20} />
-                            </div>
-                            <div>
-                                {editingId === user.id ? (
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            autoFocus
-                                            value={editName}
-                                            onChange={(e) => setEditName(e.target.value)}
-                                            className="bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-white text-sm"
-                                        />
-                                        <button onClick={() => saveName(user.id)} className="text-green-500 hover:text-green-400"><Check size={16} /></button>
-                                        <button onClick={() => setEditingId(null)} className="text-red-500 hover:text-red-400"><X size={16} /></button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-white font-medium">{user.full_name || 'Unnamed User'}</p>
-                                        <button
-                                            onClick={() => startEditing(user)}
-                                            className="text-neutral-600 hover:text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <Edit2 size={14} />
-                                        </button>
-                                    </div>
-                                )}
-                                <p className="text-neutral-500 text-xs">{user.email}</p>
-                            </div>
+            {isAdding && (
+                <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 animate-in fade-in slide-in-from-top-4">
+                    <h3 className="text-lg font-medium text-white mb-4">Invite New Member</h3>
+                    <form onSubmit={handleAddMember} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="md:col-span-1">
+                            <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Full Name</label>
+                            <input name="name" required className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white" placeholder="John Doe" />
                         </div>
-
-                        <div className="flex items-center gap-4">
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1.5 ${user.role === 'admin'
-                                ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
-                                : "bg-neutral-500/10 text-neutral-500 border border-neutral-800"
-                                }`}>
-                                {user.role === 'admin' ? <Shield size={12} /> : <User size={12} />}
-                                {user.role.toUpperCase()}
-                            </span>
-
-                            <div className="flex items-center gap-2 ml-4">
-                                <button
-                                    onClick={() => triggerPasswordReset(user.email)}
-                                    title="Send Forgot Password Email"
-                                    className="p-2 text-neutral-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-md transition-all"
-                                >
-                                    <Key size={16} />
-                                </button>
-
-                                {currentUser.id !== user.id && (
-                                    <>
-                                        <button
-                                            onClick={() => toggleRole(user.id, user.role)}
-                                            className="text-xs text-neutral-500 hover:text-white underline underline-offset-4 px-2"
-                                        >
-                                            Change Role
-                                        </button>
-                                        <button
-                                            onClick={() => deleteUser(user.id, user.full_name || user.email)}
-                                            title="Revoke Access"
-                                            className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                        <div className="md:col-span-1">
+                            <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Email</label>
+                            <input name="email" type="email" required className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white" placeholder="email@firm.com" />
                         </div>
-                    </div>
-                ))}
-            </div>
-        </div>
+                        <div className="md:col-span-1">
+                            <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Role</label>
+                            <select name="role" className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white">
+                                <option value="office">Office Staff</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+                        <div className="flex items-end gap-2">
+                            <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium">Add</button>
+                            <button type="button" onClick={() => setIsAdding(false)} className="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded font-medium text-sm">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
-        {invites.length > 0 && (
             <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden">
                 <div className="p-4 border-b border-neutral-800 bg-neutral-900/50">
-                    <h3 className="text-sm font-medium text-yellow-500 font-mono uppercase tracking-wider">Pending Invitations ({invites.length})</h3>
+                    <h3 className="text-sm font-medium text-white font-mono uppercase tracking-wider">Active Members ({users.length})</h3>
                 </div>
+
                 <div className="divide-y divide-neutral-800">
-                    {invites.map((invite) => (
-                        <div key={invite.email} className="p-4 flex items-center justify-between hover:bg-neutral-900/50 transition-colors">
+                    {users.map((user) => (
+                        <div key={user.id} className="p-4 flex items-center justify-between hover:bg-neutral-900/50 transition-colors group">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-yellow-500/50">
-                                    <Mail size={20} />
+                                <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400">
+                                    <User size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-white font-medium">{invite.full_name || 'Unnamed Staff'}</p>
-                                    <p className="text-neutral-500 text-xs">{invite.email}</p>
+                                    {editingId === user.id ? (
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                autoFocus
+                                                value={editName}
+                                                onChange={(e) => setEditName(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && saveName(user.id)}
+                                                className="bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button onClick={() => saveName(user.id)} className="text-green-500 hover:text-green-400"><Check size={16} /></button>
+                                            <button onClick={() => setEditingId(null)} className="text-red-500 hover:text-red-400"><X size={16} /></button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-white font-medium">{user.full_name || 'Unnamed User'}</p>
+                                            <button
+                                                onClick={() => startEditing(user)}
+                                                className="text-neutral-600 hover:text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Edit2 size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <p className="text-neutral-500 text-xs">{user.email}</p>
                                 </div>
                             </div>
+
                             <div className="flex items-center gap-4">
-                                <span className="text-xs text-neutral-500 italic">Waiting for signup...</span>
-                                <button
-                                    onClick={() => deleteInvite(invite.email)}
-                                    className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
-                                >
-                                    <X size={16} />
-                                </button>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1.5 ${user.role === 'admin'
+                                    ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                                    : "bg-neutral-500/10 text-neutral-500 border border-neutral-800"
+                                    }`}>
+                                    {user.role === 'admin' ? <Shield size={12} /> : <User size={12} />}
+                                    {user.role.toUpperCase()}
+                                </span>
+
+                                <div className="flex items-center gap-2 ml-4">
+                                    <button
+                                        onClick={() => triggerPasswordReset(user.email)}
+                                        title="Send Reset Password Email"
+                                        className="p-2 text-neutral-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-md transition-all"
+                                    >
+                                        <Key size={16} />
+                                    </button>
+
+                                    {currentUser.id !== user.id && (
+                                        <>
+                                            <button
+                                                onClick={() => toggleRole(user.id, user.role)}
+                                                className="text-xs text-neutral-500 hover:text-white underline underline-offset-4 px-2"
+                                            >
+                                                Change Role
+                                            </button>
+                                            <button
+                                                onClick={() => deleteUser(user.id, user.full_name || user.email)}
+                                                title="Revoke Access"
+                                                className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
-        )}
 
-        <div className="bg-blue-950/20 border border-blue-900/30 rounded-lg p-6">
-            <div className="flex items-start gap-4">
-                <ShieldAlert className="text-blue-500 flex-shrink-0" size={24} />
-                <div>
-                    <h4 className="text-blue-400 font-medium mb-1 border-b border-blue-900/50 pb-1">Adding New Members</h4>
-                    <p className="text-blue-300/70 text-sm leading-relaxed">
-                        Click <strong>Add Team Member</strong> to pre-register their name and email. Once added, tell them to sign up with that exact email address at the login page. They will automatically be granted the role you selected.
-                    </p>
+            {invites.length > 0 && (
+                <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+                    <div className="p-4 border-b border-neutral-800 bg-neutral-900/50">
+                        <h3 className="text-sm font-medium text-yellow-500 font-mono uppercase tracking-wider">Pending Invitations ({invites.length})</h3>
+                    </div>
+                    <div className="divide-y divide-neutral-800">
+                        {invites.map((invite) => (
+                            <div key={invite.email} className="p-4 flex items-center justify-between hover:bg-neutral-900/50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-yellow-500/50">
+                                        <Mail size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-medium">{invite.full_name || 'Unnamed Staff'}</p>
+                                        <p className="text-neutral-500 text-xs">{invite.email}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-xs text-neutral-500 italic">Pre-registered: {invite.role.toUpperCase()}</span>
+                                    <button
+                                        onClick={() => deleteInvite(invite.email)}
+                                        title="Cancel Invite"
+                                        className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="bg-blue-950/20 border border-blue-900/30 rounded-lg p-6">
+                <div className="flex items-start gap-4">
+                    <ShieldAlert className="text-blue-500 flex-shrink-0" size={24} />
+                    <div>
+                        <h4 className="text-blue-400 font-medium mb-1 border-b border-blue-900/50 pb-1">Team Management Guide</h4>
+                        <ul className="text-blue-300/70 text-sm space-y-2 mt-2">
+                            <li>• <strong>Adding Members</strong>: Click "Add Team Member" to set their name and role. Tell them to sign up with that exact email.</li>
+                            <li>• <strong>Renaming</strong>: Hover over a name and click the pencil icon to fix names like "Unnamed User".</li>
+                            <li>• <strong>Passwords</strong>: Click the key icon to send a reset link if a staff member forgets their password.</li>
+                            <li>• <strong>Revoking Access</strong>: Click the trash icon to remove a staff member's profile and block dashboard access.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-)
+    )
 }
