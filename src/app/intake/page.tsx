@@ -9,15 +9,12 @@ import { getIntakeByToken } from '@/lib/intake-client'
 function IntakeContent() {
     const searchParams = useSearchParams()
     const token = searchParams.get('token')
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(!!token)
     const [error, setError] = useState<string | null>(null)
     const [data, setData] = useState<any>(null)
 
     useEffect(() => {
-        if (!token) {
-            setLoading(false)
-            return
-        }
+        if (!token) return
 
         async function load() {
             if (!token) return

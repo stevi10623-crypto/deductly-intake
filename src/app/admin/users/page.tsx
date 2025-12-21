@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Shield, ShieldAlert, Trash2, Loader2, UserPlus, Mail, Edit2, Check, X, Key } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -18,7 +18,7 @@ export default function UserManagementPage() {
     const supabase = createClient()
     const router = useRouter()
 
-    async function fetchData() {
+    const fetchData = useCallback(async () => {
         try {
             const { data: { user: authUser } } = await supabase.auth.getUser()
             if (!authUser) {
@@ -58,31 +58,37 @@ export default function UserManagementPage() {
             if (!invitesError) {
                 setInvites(allInvites || [])
             }
-        } catch (err: any) {
-            setError(err.message)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message)
+            } else {
+                setError('An unknown error occurred')
+            }
         } finally {
             setLoading(false)
         }
-    }
+    }, [supabase, router])
 
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [fetchData])
 
     const toggleRole = async (userId: string, currentRole: string) => {
         const newRole = currentRole === 'admin' ? 'office' : 'admin'
         if (!confirm(`Change this user's role to ${newRole.toUpperCase()}?`)) return
 
         try {
-            const { error } = await supabase
+            const { error: updateError } = await supabase
                 .from('profiles')
                 .update({ role: newRole })
                 .eq('id', userId)
 
-            if (error) throw error
+            if (updateError) throw updateError
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
-        } catch (err: any) {
-            alert(`Error: ${err.message}`)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                alert(`Error: ${err.message}`)
+            }
         }
     }
 
@@ -90,26 +96,30 @@ export default function UserManagementPage() {
         if (!confirm(`Are you sure you want to remove ${name}? This will revoke their access immediately.`)) return
 
         try {
-            const { error } = await supabase
+            const { error: deleteError } = await supabase
                 .from('profiles')
                 .delete()
                 .eq('id', userId)
 
-            if (error) throw error
+            if (deleteError) throw deleteError
             setUsers(users.filter(u => u.id !== userId))
-        } catch (err: any) {
-            alert(`Error: ${err.message}`)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                alert(`Error: ${err.message}`)
+            }
         }
     }
 
     const deleteInvite = async (email: string) => {
         if (!confirm(`Cancel invitation for ${email}?`)) return
         try {
-            const { error } = await supabase.from('invites').delete().eq('email', email)
-            if (error) throw error
+            const { error: deleteError } = await supabase.from('invites').delete().eq('email', email)
+            if (deleteError) throw deleteError
             setInvites(invites.filter(i => i.email !== email))
-        } catch (err: any) {
-            alert(err.message)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                alert(err.message)
+            }
         }
     }
 
@@ -121,16 +131,18 @@ export default function UserManagementPage() {
         const role = formData.get('role') as string
 
         try {
-            const { error } = await supabase.from('invites').insert({
+            const { error: insertError } = await supabase.from('invites').insert({
                 email,
                 full_name: name,
                 role
             })
-            if (error) throw error
+            if (insertError) throw insertError
             setIsAdding(false)
             fetchData()
-        } catch (err: any) {
-            alert(`Error: ${err.message}`)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                alert(`Error: ${err.message}`)
+            }
         }
     }
 
@@ -141,16 +153,18 @@ export default function UserManagementPage() {
 
     const saveName = async (userId: string) => {
         try {
-            const { error } = await supabase
+            const { error: updateError } = await supabase
                 .from('profiles')
                 .update({ full_name: editName })
                 .eq('id', userId)
 
-            if (error) throw error
+            if (updateError) throw updateError
             setUsers(users.map(u => u.id === userId ? { ...u, full_name: editName } : u))
             setEditingId(null)
-        } catch (err: any) {
-            alert(err.message)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                alert(err.message)
+            }
         }
     }
 
@@ -162,8 +176,10 @@ export default function UserManagementPage() {
             })
             if (resetError) throw resetError
             alert('Password reset email sent!')
-        } catch (err: any) {
-            alert(err.message)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                alert(err.message)
+            }
         }
     }
 
@@ -347,10 +363,10 @@ export default function UserManagementPage() {
                     <div>
                         <h4 className="text-blue-400 font-medium mb-1 border-b border-blue-900/50 pb-1">Team Management Guide</h4>
                         <ul className="text-blue-300/70 text-sm space-y-2 mt-2">
-                            <li>• <strong>Adding Members</strong>: Click "Add Team Member" to set their name and role. Tell them to sign up with that exact email.</li>
-                            <li>• <strong>Renaming</strong>: Hover over a name and click the pencil icon to fix names like "Unnamed User".</li>
+                            <li>• <strong>Adding Members</strong>: Click &quot;Add Team Member&quot; to set their name and role. Tell them to sign up with that exact email.</li>
+                            <li>• <strong>Renaming</strong>: Hover over a name and click the pencil icon to fix names like &quot;Unnamed User&quot;.</li>
                             <li>• <strong>Passwords</strong>: Click the key icon to send a reset link if a staff member forgets their password.</li>
-                            <li>• <strong>Revoking Access</strong>: Click the trash icon to remove a staff member's profile and block dashboard access.</li>
+                            <li>• <strong>Revoking Access</strong>: Click the trash icon to remove a staff member&apos;s profile and block dashboard access.</li>
                         </ul>
                     </div>
                 </div>
