@@ -8,7 +8,23 @@ import { useState } from "react"
 export function ClientDeleteButton({ clientId, clientName }: { clientId: string, clientName: string }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
     const supabase = createClient()
+
+    useEffect(() => {
+        async function checkRole() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+                setIsAdmin(profile?.role === 'admin')
+            }
+        }
+        checkRole()
+    }, [])
 
     const handleDelete = async () => {
         if (!confirm(`Are you sure you want to permanently delete ${clientName}? This cannot be undone.`)) {
@@ -34,6 +50,9 @@ export function ClientDeleteButton({ clientId, clientName }: { clientId: string,
             setLoading(false)
         }
     }
+
+    if (isAdmin === false) return null; // Hide for non-admins
+    if (isAdmin === null) return null;  // Don't show while loading role
 
     return (
         <button

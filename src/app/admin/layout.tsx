@@ -14,6 +14,22 @@ export default function AdminLayout({
 }) {
     const router = useRouter();
     const supabase = createClient();
+    const [role, setRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchRole() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                setRole(profile?.role || 'office');
+            }
+        }
+        fetchRole();
+    }, []);
 
     async function handleLogout() {
         if (confirm('Are you sure you want to log out?')) {
@@ -38,13 +54,13 @@ export default function AdminLayout({
                             className="h-auto w-auto max-w-[180px]"
                         />
                     </div>
-                    <p className="text-xs text-neutral-500 mt-1">Firm Admin</p>
+                    <p className="text-xs text-neutral-500 mt-1">{role === 'admin' ? 'Firm Admin' : 'Office Staff'}</p>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1">
                     <NavItem href="/admin" icon={LayoutDashboard} label="Dashboard" />
                     <NavItem href="/admin/clients" icon={Users} label="Clients" />
-                    <NavItem href="/admin/users" icon={Users} label="Team Management" />
+                    {role === 'admin' && <NavItem href="/admin/users" icon={Users} label="Team Management" />}
                     <NavItem href="/admin/settings" icon={Settings} label="Settings" />
                 </nav>
 
