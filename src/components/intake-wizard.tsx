@@ -284,7 +284,14 @@ function FormField({ field, value, onChange }: { field: FieldDefinition, value: 
                     type={field.type === 'currency' ? 'number' : field.type === 'date' ? 'date' : field.type === 'number' ? 'number' : 'text'}
                     id={field.id}
                     value={value || ''}
-                    onChange={(e) => onChange(e.target.value)}
+                    min={field.type === 'currency' || field.type === 'number' ? "0" : undefined}
+                    onChange={(e) => {
+                        let val = e.target.value;
+                        if ((field.type === 'currency' || field.type === 'number') && parseFloat(val) < 0) {
+                            val = '0';
+                        }
+                        onChange(val);
+                    }}
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-blue-600"
                     placeholder={field.type === 'currency' ? '$0.00' : ''}
                 />
