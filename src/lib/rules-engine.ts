@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'number' | 'currency' | 'date' | 'boolean' | 'textarea' | 'select';
+export type FieldType = 'text' | 'number' | 'currency' | 'date' | 'boolean' | 'textarea' | 'select' | 'dependent-list';
 
 export type FieldDefinition = {
     id: string;
@@ -8,6 +8,7 @@ export type FieldDefinition = {
     placeholder?: string;
     description?: string;
     options?: string[]; // For select
+    showIf?: { field: string; value: any }; // For conditional visibility within a section
 };
 
 export type SectionDefinition = {
@@ -77,8 +78,9 @@ export const INTAKE_SECTIONS: SectionDefinition[] = [
             text: 'Do you have any dependents to claim (Children, parents, etc)?'
         },
         fields: [
-            { id: 'dependentNames', label: 'Dependent Names & SSNs', type: 'textarea', placeholder: 'Name 1 - SSN - DOB - Relationship\nName 2 - SSN - DOB - Relationship' },
-            { id: 'childcareExpenses', label: 'Did you pay any childcare expenses for these dependents?', type: 'select', options: ['No', 'Yes'] }
+            { id: 'dependentNames', label: 'Dependents Information', type: 'dependent-list' },
+            { id: 'childcareExpenses', label: 'Did you pay any childcare expenses for these dependents?', type: 'select', options: ['No', 'Yes'] },
+            { id: 'childcareAmount', label: 'Total Childcare Amount Paid', type: 'currency', showIf: { field: 'childcareExpenses', value: 'Yes' } }
         ]
     },
     {
@@ -95,6 +97,7 @@ export const INTAKE_SECTIONS: SectionDefinition[] = [
             { id: 'retirementIncome', label: 'Retirement Distributions (1099-R)', type: 'currency' },
             { id: 'stockSales', label: 'Stock Sales Proceeds (1099-B)', type: 'currency' },
             { id: 'cryptoActive', label: 'Did you sell, exchange, or receive any digital assets/crypto?', type: 'select', options: ['No', 'Yes'] },
+            { id: 'cryptoAmount', label: 'Total Value/Proceeds of Crypto Transactions', type: 'currency', showIf: { field: 'cryptoActive', value: 'Yes' } },
             { id: 'unemploymentIncome', label: 'Unemployment Compensation (1099-G)', type: 'currency' },
             { id: 'gamblingWinnings', label: 'Gambling Winnings (W-2G)', type: 'currency' },
             { id: 'alimonyReceived', label: 'Alimony Received', type: 'currency' },
