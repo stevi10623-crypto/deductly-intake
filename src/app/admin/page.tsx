@@ -114,7 +114,7 @@ export default function AdminDashboardPage() {
                                             )}>
                                                 {status.replace('_', ' ').toUpperCase()}
                                             </span>
-                                            <Link href={`/admin/clients/${client.id}`} className="text-neutral-400 hover:text-white">
+                                            <Link href={`/admin/clients/detail?id=${client.id}`} className="text-neutral-400 hover:text-white">
                                                 <ExternalLink size={16} />
                                             </Link>
                                         </div>
