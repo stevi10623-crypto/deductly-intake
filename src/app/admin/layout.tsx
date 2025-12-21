@@ -6,6 +6,7 @@ import { Users, LayoutDashboard, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function AdminLayout({
     children,
