@@ -31,7 +31,10 @@ export default function AdminDashboardPage() {
                     `)
                     .order('created_at', { ascending: false })
 
-                if (fetchError) throw fetchError
+                if (fetchError) {
+                    console.error('Dashboard Fetch Error:', fetchError);
+                    throw new Error(`Failed to load clients: ${fetchError.message}`);
+                }
                 setClients(data || [])
             } catch (err: any) {
                 setError(err.message)

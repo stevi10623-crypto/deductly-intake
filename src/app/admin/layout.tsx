@@ -19,14 +19,25 @@ export default function AdminLayout({
 
     useEffect(() => {
         async function fetchRole() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-                setRole(profile?.role || 'office');
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profileError) {
+                        console.error('Error fetching profile:', profileError);
+                        setRole('office'); // Fallback to office if profile not found
+                        return;
+                    }
+                    setRole(profile?.role || 'office');
+                }
+            } catch (err) {
+                console.error('Layout auth error:', err);
+                setRole('office');
             }
         }
         fetchRole();
