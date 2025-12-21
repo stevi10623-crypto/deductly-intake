@@ -1,17 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const supabase = createClient()
     const [isSignup, setIsSignup] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<string | null>(null)
+
+    useEffect(() => {
+        const signupMode = searchParams.get('signup') === 'true'
+        const emailParam = searchParams.get('email')
+        if (signupMode) setIsSignup(true)
+    }, [searchParams])
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -100,13 +108,14 @@ export default function LoginPage() {
                             id="email"
                             name="email"
                             required
+                            defaultValue={searchParams.get('email') || ''}
                             className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
                             placeholder="you@example.com"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="password" className="text-sm font-medium text-neutral-300">
+                        <label htmlFor="password" title="Enter your password" data-testid="password-label" className="text-sm font-medium text-neutral-300">
                             Password
                         </label>
                         <input
@@ -150,5 +159,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-neutral-950 flex items-center justify-center text-neutral-500">Loading...</div>}>
+            <LoginContent />
+        </Suspense>
     )
 }

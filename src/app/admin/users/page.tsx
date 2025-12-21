@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User, Shield, ShieldAlert, Trash2, Loader2, UserPlus, Mail, Edit2, Check, X, Key } from 'lucide-react'
+import { User, Shield, ShieldAlert, Trash2, Loader2, UserPlus, Mail, Edit2, Check, X, Key, Copy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function UserManagementPage() {
@@ -14,9 +14,17 @@ export default function UserManagementPage() {
     const [isAdding, setIsAdding] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
+    const [copiedEmail, setCopiedEmail] = useState<string | null>(null)
 
     const supabase = createClient()
     const router = useRouter()
+
+    const copyInviteLink = (email: string) => {
+        const link = `${window.location.origin}/login?signup=true&email=${encodeURIComponent(email)}`
+        navigator.clipboard.writeText(link)
+        setCopiedEmail(email)
+        setTimeout(() => setCopiedEmail(null), 2000)
+    }
 
     const fetchData = useCallback(async () => {
         try {
@@ -242,8 +250,8 @@ export default function UserManagementPage() {
                             <input name="email" type="email" required className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white" placeholder="email@firm.com" />
                         </div>
                         <div className="md:col-span-1">
-                            <label className="block text-xs font-medium text-neutral-400 uppercase mb-1">Role</label>
-                            <select name="role" className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white">
+                            <label htmlFor="invite-role" className="block text-xs font-medium text-neutral-400 uppercase mb-1">Role</label>
+                            <select id="invite-role" name="role" title="Select role" className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-white">
                                 <option value="office">Office Staff</option>
                                 <option value="admin">Administrator</option>
                             </select>
@@ -274,18 +282,21 @@ export default function UserManagementPage() {
                                             <input
                                                 autoFocus
                                                 value={editName}
+                                                title="Edit full name"
+                                                placeholder="Full Name"
                                                 onChange={(e) => setEditName(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && saveName(user.id)}
                                                 className="bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                             />
-                                            <button onClick={() => saveName(user.id)} className="text-green-500 hover:text-green-400"><Check size={16} /></button>
-                                            <button onClick={() => setEditingId(null)} className="text-red-500 hover:text-red-400"><X size={16} /></button>
+                                            <button onClick={() => saveName(user.id)} title="Save name" className="text-green-500 hover:text-green-400"><Check size={16} /></button>
+                                            <button onClick={() => setEditingId(null)} title="Cancel editing" className="text-red-500 hover:text-red-400"><X size={16} /></button>
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-2">
                                             <p className="text-white font-medium">{user.full_name || 'Unnamed User'}</p>
                                             <button
                                                 onClick={() => startEditing(user)}
+                                                title="Edit User Name"
                                                 className="text-neutral-600 hover:text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Edit2 size={14} />
@@ -357,13 +368,23 @@ export default function UserManagementPage() {
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <span className="text-xs text-neutral-500 italic">Pre-registered: {invite.role.toUpperCase()}</span>
-                                    <button
-                                        onClick={() => deleteInvite(invite.email)}
-                                        title="Cancel Invite"
-                                        className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
-                                    >
-                                        <X size={16} />
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => copyInviteLink(invite.email)}
+                                            title="Copy Registration Link"
+                                            className={`flex items-center gap-2 p-2 rounded-md transition-all ${copiedEmail === invite.email ? 'bg-green-500/10 text-green-500' : 'text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10'}`}
+                                        >
+                                            {copiedEmail === invite.email ? <Check size={16} /> : <Copy size={16} />}
+                                            <span className="text-xs font-medium">{copiedEmail === invite.email ? 'Copied!' : 'Copy Link'}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => deleteInvite(invite.email)}
+                                            title="Cancel Invite"
+                                            className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
