@@ -96,6 +96,7 @@ export default function CreateClientPage() {
                                 readOnly
                                 value={`${window.location.origin}/intake?token=${success.token}`}
                                 className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-white text-sm font-mono"
+                                title="Secure Intake Link"
                             />
                             <button
                                 onClick={copyIntakeLink}
@@ -144,27 +145,28 @@ export default function CreateClientPage() {
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium text-neutral-300">Full Name *</label>
+                <div className="space-y-1">
+                    <label htmlFor="clientName" className="text-xs text-neutral-500 uppercase font-bold">Client Full Name</label>
                     <input
+                        id="clientName"
+                        name="clientName"
                         type="text"
-                        id="name"
-                        name="name"
+                        title="Client Full Name"
                         required
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-600"
                         placeholder="e.g. John Doe"
                     />
                 </div>
-
-                <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-neutral-300">Email Address *</label>
+                <div className="space-y-1">
+                    <label htmlFor="clientEmail" className="text-xs text-neutral-500 uppercase font-bold">Email Address</label>
                     <input
+                        id="clientEmail"
+                        name="clientEmail"
                         type="email"
-                        id="email"
-                        name="email"
+                        title="Email Address"
                         required
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        placeholder="e.g. john@example.com"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-600"
+                        placeholder="john@example.com"
                     />
                 </div>
 

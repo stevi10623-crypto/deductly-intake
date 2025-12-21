@@ -50,26 +50,57 @@ export function AppSettingsForm({ initialData }: { initialData: any }) {
             <input type="hidden" name="phone" value={initialData?.phone || ''} />
             <input type="hidden" name="email" value={initialData?.email || ''} />
 
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-400">Default Tax Year</label>
+            <div className="space-y-1">
+                <label htmlFor="firmLegalName" className="text-xs text-neutral-500 uppercase font-bold">Firm Legal Name (Internal)</label>
                 <input
+                    id="firmLegalName"
+                    name="firmLegalName"
+                    type="text"
+                    title="Firm Legal Name"
+                    defaultValue={initialData?.firm_legal_name || ''}
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-600"
+                    placeholder="e.g. Acme Tax Services LLC"
+                />
+            </div>
+            <div className="space-y-1">
+                <label htmlFor="portalMode" className="text-xs text-neutral-500 uppercase font-bold">Portal Mode</label>
+                <select
+                    id="portalMode"
+                    name="portalMode"
+                    title="Portal Mode"
+                    defaultValue={initialData?.portal_mode || "tax_intake"}
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-600"
+                >
+                    <option value="tax_intake">Tax Intake Mode (Default)</option>
+                    <option value="bookkeeping">Bookkeeping Mode</option>
+                </select>
+            </div>
+
+            <div className="space-y-2">
+                <label htmlFor="defaultTaxYear" className="text-sm font-medium text-neutral-400">Default Tax Year</label>
+                <input
+                    id="defaultTaxYear"
                     name="defaultTaxYear"
                     type="number"
+                    title="Default Tax Year"
                     defaultValue={initialData?.default_tax_year || new Date().getFullYear()}
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
+                    placeholder={new Date().getFullYear().toString()}
                 />
                 <p className="text-xs text-neutral-600">Used when creating new client files.</p>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-neutral-950 border border-neutral-800 rounded-lg">
                 <div className="space-y-0.5">
-                    <label className="text-sm font-medium text-neutral-300">Email Notifications</label>
+                    <label htmlFor="emailNotifications" className="text-sm font-medium text-neutral-300">Email Notifications</label>
                     <p className="text-xs text-neutral-500">Receive emails when clients submit intakes.</p>
                 </div>
                 <div className="flex items-center">
                     <input
+                        id="emailNotifications"
                         name="emailNotifications"
                         type="checkbox"
+                        title="Email Notifications"
                         value="true"
                         defaultChecked={initialData?.email_notifications !== false} // Default to true if undefined
                         className="w-5 h-5 rounded border-neutral-700 bg-neutral-800 text-blue-600 focus:ring-blue-500/50"

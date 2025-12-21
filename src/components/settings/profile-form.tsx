@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Loader2 } from "lucide-react"
 import { useState } from "react"
 
-export function ProfileSettingsForm({ initialData }: { initialData: any }) {
+export function ProfileSettingsForm({ initialData, role }: { initialData: any, role?: string }) {
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
     const supabase = createClient()
@@ -25,8 +25,6 @@ export function ProfileSettingsForm({ initialData }: { initialData: any }) {
             const { data: { user }, error: authError } = await supabase.auth.getUser()
             if (authError || !user) throw new Error('Not authenticated')
 
-            if (!fullName) throw new Error('Full name is required')
-
             // Handle Password Change first if provided
             if (newPassword) {
                 if (newPassword !== confirmPassword) throw new Error('Passwords do not match')
@@ -36,26 +34,31 @@ export function ProfileSettingsForm({ initialData }: { initialData: any }) {
                 if (passwordError) throw passwordError
             }
 
-            // Update basic profile info
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .upsert({
-                    id: user.id,
-                    full_name: fullName,
-                    phone: phone,
-                    updated_at: new Date().toISOString()
-                })
+            // Only update profile info if not office staff (or if admin is editing their own info)
+            if (role === 'admin') {
+                if (!fullName) throw new Error('Full name is required')
 
-            if (profileError) throw profileError
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .upsert({
+                        id: user.id,
+                        full_name: fullName,
+                        phone: phone,
+                        updated_at: new Date().toISOString()
+                    })
 
-            // Handle Email Change if different
-            if (email && email !== user.email) {
-                const { error: emailError } = await supabase.auth.updateUser({ email: email })
-                if (emailError) throw new Error(`Profile updated, but email failed: ${emailError.message}`)
-                setMessage({ type: 'success', text: 'Profile updated. Check both emails to confirm address change.' })
-            } else {
-                setMessage({ type: 'success', text: newPassword ? 'Settings and password updated successfully' : 'Settings updated successfully' })
+                if (profileError) throw profileError
+
+                // Handle Email Change if different
+                if (email && email !== user.email) {
+                    const { error: emailError } = await supabase.auth.updateUser({ email: email })
+                    if (emailError) throw new Error(`Profile updated, but email failed: ${emailError.message}`)
+                    setMessage({ type: 'success', text: 'Profile updated. Check both emails to confirm address change.' })
+                    return;
+                }
             }
+
+            setMessage({ type: 'success', text: newPassword ? 'Settings and password updated successfully' : 'Settings updated successfully' })
         } catch (err: any) {
             setMessage({ type: 'error', text: err.message || 'Failed to update settings' })
         } finally {
@@ -63,62 +66,79 @@ export function ProfileSettingsForm({ initialData }: { initialData: any }) {
         }
     }
 
+    const isAdmin = role === 'admin';
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-400">Firm Name / Display Name</label>
-                    <input
-                        name="fullName"
-                        type="text"
-                        defaultValue={initialData?.full_name || ''}
-                        placeholder="e.g. Acme Tax Services"
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
-                    />
-                </div>
+            {isAdmin && (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label htmlFor="fullName" className="text-sm font-medium text-neutral-400">Firm Name / Display Name</label>
+                            <input
+                                id="fullName"
+                                name="fullName"
+                                type="text"
+                                defaultValue={initialData?.full_name || ''}
+                                title="Firm Name"
+                                placeholder="e.g. Acme Tax Services"
+                                className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
+                            />
+                        </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-400">Phone Number</label>
-                    <input
-                        name="phone"
-                        type="tel"
-                        defaultValue={initialData?.phone || ''}
-                        placeholder="(555) 123-4567"
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
-                    />
-                </div>
-            </div>
+                        <div className="space-y-2">
+                            <label htmlFor="phone" className="text-sm font-medium text-neutral-400">Phone Number</label>
+                            <input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                defaultValue={initialData?.phone || ''}
+                                title="Phone Number"
+                                placeholder="(555) 123-4567"
+                                className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
+                            />
+                        </div>
+                    </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-400">Email Address</label>
-                <input
-                    name="email"
-                    type="email"
-                    defaultValue={initialData?.email || ''}
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
-                />
-                <p className="text-xs text-neutral-500">
-                    Note: Changing email will require clicking a confirmation link sent to the new address.
-                </p>
-            </div>
+                    <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-medium text-neutral-400">Email Address</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            defaultValue={initialData?.email || ''}
+                            title="Email Address"
+                            placeholder="email@example.com"
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
+                        />
+                        <p className="text-xs text-neutral-500">
+                            Note: Changing email will require clicking a confirmation link sent to the new address.
+                        </p>
+                    </div>
+                </>
+            )}
 
-            <div className="pt-6 border-t border-neutral-900 space-y-4">
+            <div className={`${isAdmin ? 'pt-6 border-t border-neutral-900' : ''} space-y-4`}>
                 <h3 className="text-sm font-medium text-white">Security</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-neutral-400">New Password</label>
+                        <label htmlFor="newPassword" className="text-sm font-medium text-neutral-400">New Password</label>
                         <input
+                            id="newPassword"
                             name="newPassword"
                             type="password"
+                            title="New Password"
                             placeholder="••••••••"
                             className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-neutral-400">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-400">Confirm Password</label>
                         <input
+                            id="confirmPassword"
                             name="confirmPassword"
                             type="password"
+                            title="Confirm Password"
                             placeholder="••••••••"
                             className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-neutral-300 focus:outline-none focus:border-blue-500/50"
                         />

@@ -1,6 +1,6 @@
 'use client'
 
-import { Upload, File, X, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload, File, X, CheckCircle, Loader2, FileText, ExternalLink, Trash2 } from 'lucide-react'
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -122,6 +122,7 @@ export function FileUploader({
                 <input
                     ref={inputRef}
                     type="file"
+                    title="Hidden File Input"
                     multiple
                     onChange={(e) => handleFiles(e.target.files)}
                     className="hidden"
@@ -134,43 +135,59 @@ export function FileUploader({
                             <p className="text-sm font-medium text-neutral-300">Uploading...</p>
                         </>
                     ) : (
-                        <>
-                            <div className="p-3 bg-neutral-900 rounded-full">
-                                <Upload size={20} className="text-neutral-400" />
-                            </div>
-                            <p className="text-sm font-medium text-neutral-300">Upload {label}</p>
-                            <p className="text-xs text-neutral-500">Drag & drop or click to select</p>
-                        </>
+                        <div className="space-y-2">
+                            <label htmlFor="file-input" className="text-sm font-medium text-neutral-300">Add documents</label>
+                            <input
+                                id="file-input"
+                                type="file"
+                                title="Upload Documents"
+                                multiple
+                                onChange={(e) => handleFiles(e.target.files)} // Corrected to pass FileList
+                                disabled={uploading}
+                                className="w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition-colors cursor-pointer disabled:opacity-50"
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" // Added accept attribute back
+                            />
+                        </div>
                     )}
                 </div>
-            </div>
 
-            {files.length > 0 && (
-                <div className="space-y-2">
-                    {files.map((file, index) => (
-                        <div
-                            key={index}
-                            className="flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-md p-3"
-                        >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <File size={16} className="text-neutral-400 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-white truncate">{file.name}</p>
-                                    <p className="text-xs text-neutral-500">{formatFileSize(file.size)}</p>
+                {/* Documents List */}
+                <div className="space-y-2 mt-6">
+                    <h4 className="text-sm font-medium text-neutral-400 px-1">Uploaded Files</h4>
+                    <div className="space-y-2">
+                        {files.length > 0 ? files.map((doc: UploadedFile) => ( // Changed 'documents' to 'files' and added type
+                            <div key={doc.path} className="flex items-center justify-between p-3 bg-neutral-900/50 border border-neutral-800 rounded-md">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <div className="p-2 bg-blue-600/10 text-blue-500 rounded">
+                                        <FileText size={18} />
+                                    </div>
+                                    <span className="text-sm text-white truncate">{doc.name}</span>
                                 </div>
-                                <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => window.open(supabase.storage.from('intake-documents').getPublicUrl(doc.path).data.publicUrl, '_blank')}
+                                        title={`View ${doc.name}`}
+                                        className="text-neutral-500 hover:text-white transition-colors"
+                                    >
+                                        <ExternalLink size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(doc.path)}
+                                        title={`Delete ${doc.name}`}
+                                        className="text-neutral-500 hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => handleDelete(file.path)}
-                                className="ml-2 p-1 hover:bg-neutral-800 rounded text-neutral-400 hover:text-red-500"
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-                    ))}
+                        )) : (
+                            <div className="text-center py-6 border border-dashed border-neutral-800 rounded-md">
+                                <p className="text-sm text-neutral-600">No documents uploaded yet.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     )
 }
-
