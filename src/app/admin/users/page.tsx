@@ -34,7 +34,13 @@ export default function UserManagementPage() {
 
             setCurrentUser(profile)
 
-            if (profile?.role !== 'admin') {
+            if (!profile) {
+                setError('Profile not found. Please try logging out and back in.')
+                setLoading(false)
+                return
+            }
+
+            if (profile.role !== 'admin') {
                 setError('Unauthorized: You do not have permission to access this page.')
                 setLoading(false)
                 return
@@ -55,7 +61,15 @@ export default function UserManagementPage() {
                 .select('*')
                 .order('created_at', { ascending: false })
 
-            if (!invitesError) {
+            if (invitesError) {
+                // If the table doesn't exist, we'll see a specific error here
+                if (invitesError.code === '42P01') {
+                    console.warn('Invitations table not found. Please run the SQL setup script.')
+                } else {
+                    console.error('Error fetching invites:', invitesError)
+                }
+                setInvites([])
+            } else {
                 setInvites(allInvites || [])
             }
         } catch (err: unknown) {
@@ -300,7 +314,7 @@ export default function UserManagementPage() {
                                         <Key size={16} />
                                     </button>
 
-                                    {currentUser.id !== user.id && (
+                                    {currentUser?.id !== user.id && (
                                         <>
                                             <button
                                                 onClick={() => toggleRole(user.id, user.role)}
