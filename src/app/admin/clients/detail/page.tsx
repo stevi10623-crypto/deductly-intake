@@ -40,7 +40,7 @@ function ClientDetailContent() {
                         )
                     `)
                     .eq('id', id)
-                    .single()
+                    .maybeSingle()
 
                 if (fetchError) throw fetchError
                 setClient(data)

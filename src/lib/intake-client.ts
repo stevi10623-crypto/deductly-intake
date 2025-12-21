@@ -5,7 +5,7 @@ export async function getIntakeByToken(token: string) {
         const supabase = createClient()
         const { data, error } = await supabase
             .rpc('get_intake_by_token', { lookup_token: token })
-            .single()
+            .maybeSingle()
 
         if (error) return { success: false, error: error.message }
         if (!data) return { success: false, error: 'Intake not found' }

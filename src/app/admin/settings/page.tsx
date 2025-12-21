@@ -26,11 +26,9 @@ export default function SettingsPage() {
 
                 if (fetchError) throw fetchError
 
-                if (!data) {
-                    throw new Error('Your profile record was not found. Please contact your administrator.')
-                }
-
-                setProfile(data)
+                // Fallback to a default profile if RLS is blocking the record
+                // This allows the page to load so they can still change their password
+                setProfile(data || { role: 'office' })
             } catch (err: any) {
                 setError(err.message)
             } finally {

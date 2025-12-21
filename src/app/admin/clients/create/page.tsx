@@ -38,7 +38,7 @@ export default function CreateClientPage() {
                     firm_admin_id: user.id
                 })
                 .select()
-                .single()
+                .maybeSingle()
 
             if (clientError) throw clientError
 
@@ -51,7 +51,7 @@ export default function CreateClientPage() {
                     status: 'not_started'
                 })
                 .select()
-                .single()
+                .maybeSingle()
 
             if (intakeError) throw intakeError
 

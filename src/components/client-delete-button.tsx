@@ -19,7 +19,7 @@ export function ClientDeleteButton({ clientId, clientName }: { clientId: string,
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
-                    .single()
+                    .maybeSingle()
                 setIsAdmin(profile?.role === 'admin')
             }
         }
