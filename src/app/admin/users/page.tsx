@@ -38,7 +38,7 @@ export default function UserManagementPage() {
                 .from('profiles')
                 .select('*')
                 .eq('id', authUser.id)
-                .single()
+                .maybeSingle()
 
             setCurrentUser(profile)
 

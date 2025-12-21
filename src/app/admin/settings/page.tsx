@@ -22,9 +22,14 @@ export default function SettingsPage() {
                     .from('profiles')
                     .select('*')
                     .eq('id', user.id)
-                    .single()
+                    .maybeSingle()
 
                 if (fetchError) throw fetchError
+
+                if (!data) {
+                    throw new Error('Your profile record was not found. Please contact your administrator.')
+                }
+
                 setProfile(data)
             } catch (err: any) {
                 setError(err.message)
