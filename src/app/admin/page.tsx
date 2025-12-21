@@ -29,7 +29,6 @@ export default function AdminDashboardPage() {
                             updated_at
                         )
                     `)
-                    .eq('firm_admin_id', user.id)
                     .order('created_at', { ascending: false })
 
                 if (fetchError) throw fetchError

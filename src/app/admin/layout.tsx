@@ -44,6 +44,7 @@ export default function AdminLayout({
                 <nav className="flex-1 p-4 space-y-1">
                     <NavItem href="/admin" icon={LayoutDashboard} label="Dashboard" />
                     <NavItem href="/admin/clients" icon={Users} label="Clients" />
+                    <NavItem href="/admin/users" icon={Users} label="Team Management" />
                     <NavItem href="/admin/settings" icon={Settings} label="Settings" />
                 </nav>
 
