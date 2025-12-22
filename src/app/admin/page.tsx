@@ -37,6 +37,10 @@ export default function AdminDashboardPage() {
                 }
                 setClients(data || [])
             } catch (err: any) {
+                if (err.message === 'Not authenticated') {
+                    window.location.href = '/login' // Force a hard navigation to clear state
+                    return
+                }
                 setError(err.message)
             } finally {
                 setLoading(false)
