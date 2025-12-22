@@ -60,7 +60,7 @@ function IntakeContent() {
         <div className="min-h-screen bg-neutral-950">
             <div className="max-w-3xl mx-auto pt-10 px-4">
                 <Image
-                    src="https://storage.googleapis.com/jjswart/c1b522_903f82c37aab4da28ae9886f72add797~mv2.avif"
+                    src="/logo.png"
                     alt="JJ Swart Deductify"
                     width={180}
                     height={50}

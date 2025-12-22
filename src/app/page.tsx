@@ -7,7 +7,7 @@ export default function Home() {
       <div className="text-center space-y-6 max-w-lg">
         <div className="flex justify-center">
           <Image
-            src="https://storage.googleapis.com/jjswart/c1b522_903f82c37aab4da28ae9886f72add797~mv2.avif"
+            src="/logo.png"
 
 
             alt="JJ Swart Deductify"

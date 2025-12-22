@@ -61,7 +61,7 @@ export default function AdminLayout({
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-neutral-950 border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
                 <Image
-                    src="https://storage.googleapis.com/jjswart/c1b522_903f82c37aab4da28ae9886f72add797~mv2.avif"
+                    src="/logo.png"
                     alt="JJ Swart Deductify"
                     width={120}
                     height={35}
@@ -93,7 +93,7 @@ export default function AdminLayout({
                 <div className="p-6 border-b border-neutral-800 hidden md:block">
                     <div className="mb-2">
                         <Image
-                            src="https://storage.googleapis.com/jjswart/c1b522_903f82c37aab4da28ae9886f72add797~mv2.avif"
+                            src="/logo.png"
                             alt="JJ Swart Deductify"
                             width={180}
                             height={50}
