@@ -20,8 +20,8 @@ export default function CreateClientPage() {
         setError(null)
 
         const formData = new FormData(event.currentTarget)
-        const name = formData.get('name') as string
-        const email = formData.get('email') as string
+        const name = formData.get('clientName') as string
+        const email = formData.get('clientEmail') as string
         const taxYear = parseInt(formData.get('taxYear') as string)
 
         try {
