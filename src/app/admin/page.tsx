@@ -98,28 +98,30 @@ export default function AdminDashboardPage() {
                                 const updated = new Date(intake?.updated_at || client.created_at).toLocaleDateString()
 
                                 return (
-                                    <div key={client.id} className="p-4 flex items-center justify-between hover:bg-neutral-900/50 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400">
-                                                <User size={20} />
+                                    <div key={client.id} className="p-4 hover:bg-neutral-900/50 transition-colors">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 flex-shrink-0">
+                                                    <User size={20} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-white font-medium truncate">{client.name}</p>
+                                                    <p className="text-neutral-500 text-xs">Updated {updated}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-white font-medium">{client.name}</p>
-                                                <p className="text-neutral-500 text-xs">Updated {updated}</p>
+                                            <div className="flex items-center gap-3 ml-13 sm:ml-0">
+                                                <span className={cn(
+                                                    "px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap",
+                                                    status === 'submitted' ? "bg-green-500/10 text-green-500" :
+                                                        status === 'in_progress' ? "bg-blue-500/10 text-blue-500" :
+                                                            "bg-neutral-500/10 text-neutral-500"
+                                                )}>
+                                                    {status.replace('_', ' ').toUpperCase()}
+                                                </span>
+                                                <Link href={`/admin/clients/detail?id=${client.id}`} className="text-neutral-400 hover:text-white">
+                                                    <ExternalLink size={16} />
+                                                </Link>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={cn(
-                                                "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                                                status === 'submitted' ? "bg-green-500/10 text-green-500" :
-                                                    status === 'in_progress' ? "bg-blue-500/10 text-blue-500" :
-                                                        "bg-neutral-500/10 text-neutral-500"
-                                            )}>
-                                                {status.replace('_', ' ').toUpperCase()}
-                                            </span>
-                                            <Link href={`/admin/clients/detail?id=${client.id}`} className="text-neutral-400 hover:text-white">
-                                                <ExternalLink size={16} />
-                                            </Link>
                                         </div>
                                     </div>
                                 )

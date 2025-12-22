@@ -100,16 +100,29 @@ export default function UserManagementPage() {
         if (!confirm(`Change this user's role to ${newRole.toUpperCase()}?`)) return
 
         try {
-            const { error: updateError } = await supabase
+            console.log('Attempting to update role for user:', userId, 'to:', newRole)
+            const { data, error: updateError } = await supabase
                 .from('profiles')
                 .update({ role: newRole })
                 .eq('id', userId)
+                .select()
 
-            if (updateError) throw updateError
+            console.log('Update result:', { data, error: updateError })
+
+            if (updateError) {
+                console.error('Role update failed:', updateError)
+                throw updateError
+            }
+
+            if (!data || data.length === 0) {
+                throw new Error('Update completed but no rows were affected. Check RLS policies.')
+            }
+
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
+            alert(`Successfully changed role to ${newRole.toUpperCase()}`)
         } catch (err: unknown) {
             if (err instanceof Error) {
-                alert(`Error: ${err.message}`)
+                alert(`Error changing role: ${err.message}`)
             }
         }
     }
@@ -222,18 +235,18 @@ export default function UserManagementPage() {
     }
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white">Team Management</h2>
-                    <p className="text-neutral-400">Manage firm administrators and office staff.</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">Team Management</h2>
+                    <p className="text-neutral-400 text-sm">Manage firm administrators and office staff.</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-colors"
+                    className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-colors text-sm sm:text-base"
                 >
                     <UserPlus size={18} />
-                    Add Team Member
+                    <span className="sm:inline">Add Team Member</span>
                 </button>
             </div>
 
@@ -271,77 +284,79 @@ export default function UserManagementPage() {
 
                 <div className="divide-y divide-neutral-800">
                     {users.map((user) => (
-                        <div key={user.id} className="p-4 flex items-center justify-between hover:bg-neutral-900/50 transition-colors group">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400">
-                                    <User size={20} />
+                        <div key={user.id} className="p-4 hover:bg-neutral-900/50 transition-colors group">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 flex-shrink-0">
+                                        <User size={20} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        {editingId === user.id ? (
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    autoFocus
+                                                    value={editName}
+                                                    title="Edit full name"
+                                                    placeholder="Full Name"
+                                                    onChange={(e) => setEditName(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && saveName(user.id)}
+                                                    className="bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-32 sm:w-auto"
+                                                />
+                                                <button onClick={() => saveName(user.id)} title="Save name" className="text-green-500 hover:text-green-400"><Check size={16} /></button>
+                                                <button onClick={() => setEditingId(null)} title="Cancel editing" className="text-red-500 hover:text-red-400"><X size={16} /></button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-white font-medium truncate">{user.full_name || 'Unnamed User'}</p>
+                                                <button
+                                                    onClick={() => startEditing(user)}
+                                                    title="Edit User Name"
+                                                    className="text-neutral-600 hover:text-neutral-400 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                            </div>
+                                        )}
+                                        <p className="text-neutral-500 text-xs truncate">{user.email}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    {editingId === user.id ? (
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                autoFocus
-                                                value={editName}
-                                                title="Edit full name"
-                                                placeholder="Full Name"
-                                                onChange={(e) => setEditName(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && saveName(user.id)}
-                                                className="bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                            />
-                                            <button onClick={() => saveName(user.id)} title="Save name" className="text-green-500 hover:text-green-400"><Check size={16} /></button>
-                                            <button onClick={() => setEditingId(null)} title="Cancel editing" className="text-red-500 hover:text-red-400"><X size={16} /></button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-white font-medium">{user.full_name || 'Unnamed User'}</p>
-                                            <button
-                                                onClick={() => startEditing(user)}
-                                                title="Edit User Name"
-                                                className="text-neutral-600 hover:text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
-                                        </div>
-                                    )}
-                                    <p className="text-neutral-500 text-xs">{user.email}</p>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center gap-4">
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1.5 ${user.role === 'admin'
-                                    ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
-                                    : "bg-neutral-500/10 text-neutral-500 border border-neutral-800"
-                                    }`}>
-                                    {user.role === 'admin' ? <Shield size={12} /> : <User size={12} />}
-                                    {user.role.toUpperCase()}
-                                </span>
+                                <div className="flex flex-wrap items-center gap-2 ml-13 sm:ml-0">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 ${user.role === 'admin'
+                                        ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                                        : "bg-neutral-500/10 text-neutral-500 border border-neutral-800"
+                                        }`}>
+                                        {user.role === 'admin' ? <Shield size={12} /> : <User size={12} />}
+                                        {user.role.toUpperCase()}
+                                    </span>
 
-                                <div className="flex items-center gap-2 ml-4">
-                                    <button
-                                        onClick={() => triggerPasswordReset(user.email)}
-                                        title="Send Reset Password Email"
-                                        className="p-2 text-neutral-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-md transition-all"
-                                    >
-                                        <Key size={16} />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => triggerPasswordReset(user.email)}
+                                            title="Send Reset Password Email"
+                                            className="p-1.5 text-neutral-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-md transition-all"
+                                        >
+                                            <Key size={14} />
+                                        </button>
 
-                                    {currentUser?.id !== user.id && (
-                                        <>
-                                            <button
-                                                onClick={() => toggleRole(user.id, user.role)}
-                                                className="text-xs text-neutral-500 hover:text-white underline underline-offset-4 px-2"
-                                            >
-                                                Change Role
-                                            </button>
-                                            <button
-                                                onClick={() => deleteUser(user.id, user.full_name || user.email)}
-                                                title="Revoke Access"
-                                                className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </>
-                                    )}
+                                        {currentUser?.id !== user.id && (
+                                            <>
+                                                <button
+                                                    onClick={() => toggleRole(user.id, user.role)}
+                                                    className="text-xs text-neutral-500 hover:text-white px-1.5 py-1 hover:bg-neutral-800 rounded"
+                                                >
+                                                    Switch
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteUser(user.id, user.full_name || user.email)}
+                                                    title="Revoke Access"
+                                                    className="p-1.5 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

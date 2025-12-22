@@ -92,30 +92,30 @@ function ClientDetailContent() {
                     <ClientDeleteButton clientId={client.id} clientName={client.name} />
                 </div>
 
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-white">{client.name}</h1>
-                        <div className="flex items-center gap-4 mt-2 text-neutral-400">
-                            <div className="flex items-center gap-1.5">
-                                <Mail size={16} />
-                                {client.email}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white break-words">{client.name}</h1>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-neutral-400 text-sm">
+                            <div className="flex items-center gap-1.5 truncate">
+                                <Mail size={16} className="flex-shrink-0" />
+                                <span className="truncate">{client.email}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <Calendar size={16} />
+                                <Calendar size={16} className="flex-shrink-0" />
                                 Tax Year: {intake?.tax_year}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-3 text-right">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${intake?.status === 'submitted' ? "bg-green-500/10 text-green-500 border border-green-500/20" :
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:text-right">
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap ${intake?.status === 'submitted' ? "bg-green-500/10 text-green-500 border border-green-500/20" :
                             intake?.status === 'in_progress' ? "bg-blue-500/10 text-blue-500 border border-blue-500/20" :
                                 "bg-neutral-500/10 text-neutral-500 border border-neutral-800"
                             }`}>
                             {intake?.status.replace('_', ' ').toUpperCase()}
                         </span>
-                        <div className="text-xs text-neutral-500">
-                            Last Updated: {intake?.updated_at ? new Date(intake.updated_at).toLocaleString() : 'Never'}
+                        <div className="text-xs text-neutral-500 whitespace-nowrap">
+                            Updated: {intake?.updated_at ? new Date(intake.updated_at).toLocaleDateString() : 'Never'}
                         </div>
                     </div>
                 </div>

@@ -62,7 +62,7 @@ export default function ClientsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-white">Clients</h2>
                     <p className="text-neutral-400">Manage your client list and monitor intake progress.</p>
@@ -86,17 +86,17 @@ export default function ClientsPage() {
                         const status = intake?.status || 'no_intake'
 
                         return (
-                            <div key={client.id} className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-6 hover:border-neutral-700 transition-colors">
-                                <div className="flex items-start justify-between">
+                            <div key={client.id} className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-4 sm:p-6 hover:border-neutral-700 transition-colors">
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                     <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-500">
-                                            <User size={24} />
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-500 flex-shrink-0">
+                                            <User size={20} />
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-white">{client.name}</h3>
-                                            <p className="text-neutral-400 text-sm">{client.email}</p>
+                                        <div className="min-w-0">
+                                            <h3 className="text-base sm:text-lg font-semibold text-white truncate">{client.name}</h3>
+                                            <p className="text-neutral-400 text-sm truncate">{client.email}</p>
 
-                                            <div className="flex items-center gap-4 mt-3">
+                                            <div className="flex flex-wrap items-center gap-3 mt-3">
                                                 <div className="flex items-center gap-1.5 text-xs text-neutral-500">
                                                     <Calendar size={14} />
                                                     Tax Year: {intake?.tax_year || 'N/A'}
@@ -109,7 +109,7 @@ export default function ClientsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col items-end gap-2">
+                                    <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 ml-14 sm:ml-0">
                                         <span className={cn(
                                             "px-2.5 py-0.5 rounded-full text-xs font-medium",
                                             status === 'submitted' ? "bg-green-500/10 text-green-500" :
@@ -119,7 +119,7 @@ export default function ClientsPage() {
                                             {status.replace('_', ' ').toUpperCase()}
                                         </span>
 
-                                        <div className="flex items-center gap-2 mt-2">
+                                        <div className="flex items-center gap-2">
                                             <Link
                                                 href={`/admin/clients/detail?id=${client.id}`}
                                                 className="text-xs text-blue-500 hover:text-blue-400 font-medium"
