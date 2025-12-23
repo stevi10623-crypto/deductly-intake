@@ -158,26 +158,33 @@ export default function UserManagementPage() {
         }
     }
 
+    const [tempPassword, setTempPassword] = useState<string | null>(null)
+    const [newMemberEmail, setNewMemberEmail] = useState<string | null>(null)
+
     const handleAddMember = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
-        const email = (formData.get('email') as string).toLowerCase()
-        const name = formData.get('name') as string
-        const role = formData.get('role') as string
 
         try {
-            const { error: insertError } = await supabase.from('invites').insert({
-                email,
-                full_name: name,
-                role
-            })
-            if (insertError) throw insertError
-            setIsAdding(false)
-            fetchData()
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                alert(`Error: ${err.message}`)
+            // Import dynamically or at top - doing dynamic here for simplicity in this snippet Context
+            const { createTeamMember } = await import('@/actions/create-team-member')
+
+            const result = await createTeamMember(formData)
+
+            if (result.error) {
+                alert(`Error: ${result.error}`)
+                return
             }
+
+            if (result.success && result.tempPassword) {
+                setTempPassword(result.tempPassword)
+                setNewMemberEmail(formData.get('email') as string)
+                setIsAdding(false)
+                fetchData() // Refresh list
+            }
+        } catch (err: unknown) {
+            console.error(err)
+            alert('An unexpected error occurred')
         }
     }
 
@@ -236,6 +243,50 @@ export default function UserManagementPage() {
 
     return (
         <div className="space-y-6">
+            {tempPassword && (
+                <div className="bg-green-950/30 border border-green-900/50 rounded-lg p-6 mb-6 animate-in fade-in zoom-in-95">
+                    <div className="flex items-start gap-4">
+                        <div className="bg-green-900/50 p-2 rounded-full text-green-400">
+                            <Key size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-green-400 mb-2">User Created Successfully!</h3>
+                            <p className="text-neutral-300 text-sm mb-4">
+                                The account for <span className="text-white font-medium">{newMemberEmail}</span> has been created.
+                                <br />They can log in immediately with this temporary password:
+                            </p>
+                            <div className="flex items-center gap-3">
+                                <code className="bg-black/50 border border-green-500/20 px-4 py-3 rounded text-xl font-mono text-white tracking-wider select-all">
+                                    {tempPassword}
+                                </code>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(tempPassword)
+                                        alert('Password copied!')
+                                    }}
+                                    className="text-neutral-400 hover:text-white p-2 hover:bg-white/5 rounded transition-colors"
+                                    title="Copy Password"
+                                >
+                                    <Copy size={20} />
+                                </button>
+                            </div>
+                            <p className="text-neutral-500 text-xs mt-4">
+                                Please share this password with them securely. They should change it after logging in.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setTempPassword(null)
+                                    setNewMemberEmail(null)
+                                }}
+                                className="mt-4 text-sm text-green-500 hover:text-green-400 underline"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-white">Team Management</h2>
