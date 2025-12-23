@@ -48,14 +48,13 @@ export default function AdminLayout({
         if (!confirm('Are you sure you want to log out?')) return;
 
         try {
-            // Use server action for reliable logout
             const { signOut } = await import('@/actions/sign-out')
             await signOut()
         } catch (error: any) {
             console.error('Logout error:', error)
-            // Force redirect anyway
-            window.location.href = '/login'
         }
+        // Always redirect regardless of result
+        window.location.href = '/login'
     }
 
     // Close sidebar when clicking a nav item on mobile
