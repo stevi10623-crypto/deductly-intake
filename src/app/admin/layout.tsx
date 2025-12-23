@@ -48,14 +48,16 @@ export default function AdminLayout({
         if (!confirm('Are you sure you want to log out?')) return;
 
         try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            router.push('/login');
+            // Race the signOut against a 2-second timeout so user isn't stuck
+            await Promise.race([
+                supabase.auth.signOut(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Sign out timed out')), 2000))
+            ]);
+            window.location.href = '/login';
         } catch (error: any) {
             console.error('Logout error:', error);
-            alert(`Failed to sign out: ${error?.message || 'Unknown error'}`);
-            // Force redirect anyway on error to avoid being stuck
-            router.push('/login');
+            // Ignore error and force redirect
+            window.location.href = '/login';
         }
     }
 

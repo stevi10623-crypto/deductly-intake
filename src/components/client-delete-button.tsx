@@ -33,16 +33,19 @@ export function ClientDeleteButton({ clientId, clientName }: { clientId: string,
 
         setLoading(true)
         try {
-            const { error } = await supabase
-                .from('clients')
-                .delete()
-                .eq('id', clientId)
+            // Import dynamically to avoid server action issues in client component if needed, 
+            // but standard import work in Next.js 14+ usually.
+            // Using direct import is improved.
+            const { deleteClient } = await import('@/actions/delete-client')
 
-            if (!error) {
-                router.push('/admin/clients')
+            const result = await deleteClient(clientId)
+
+            if (result.success) {
+                // Force a hard navigation to update the list/ensure state is clean
+                window.location.href = '/admin/clients'
             } else {
-                console.error("Delete Error details:", error)
-                alert(`Error deleting client: ${error.message} (Code: ${error.code})`)
+                console.error("Delete Error details:", result.error)
+                alert(`Error deleting client: ${result.error}`)
             }
         } catch (error: any) {
             console.error("Delete failed", error)

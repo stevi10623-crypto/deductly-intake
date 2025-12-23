@@ -13,6 +13,8 @@ export default function IntakeWizard({ token, initialData = {} }: { token: strin
     const [currentStepIndex, setCurrentStepIndex] = useState(0)
     const [isSaving, setIsSaving] = useState(false)
     const [lastSaved, setLastSaved] = useState<Date | null>(null)
+    const [isSubmitted, setIsSubmitted] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const activeSections = getActiveSections(data)
 
@@ -35,12 +37,35 @@ export default function IntakeWizard({ token, initialData = {} }: { token: strin
     }
 
     const handleSubmit = async () => {
+        setIsSubmitting(true)
         const result = await submitIntake(token)
+        setIsSubmitting(false)
         if (result.success) {
-            alert('Thank you! Your tax intake has been submitted successfully.')
+            setIsSubmitted(true)
         } else {
             alert('There was an error submitting your intake. Please try again.')
         }
+    }
+
+    // SUCCESS SCREEN
+    if (isSubmitted) {
+        return (
+            <div className="max-w-2xl mx-auto py-20 px-4 text-center">
+                <div className="bg-green-950/30 border border-green-900/50 rounded-2xl p-10 space-y-6">
+                    <div className="text-6xl">🎉</div>
+                    <h1 className="text-3xl font-bold text-white">Thank You!</h1>
+                    <p className="text-neutral-300 text-lg">
+                        Your tax intake has been submitted successfully.
+                    </p>
+                    <p className="text-neutral-500 text-sm">
+                        Your accountant will review your information and reach out if they have any questions.
+                    </p>
+                    <div className="pt-6 border-t border-green-900/30">
+                        <p className="text-neutral-600 text-xs">You may now close this page.</p>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -155,9 +180,10 @@ export default function IntakeWizard({ token, initialData = {} }: { token: strin
                             handleSubmit()
                         }
                     }}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-500 transition-colors"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
                 >
-                    {safeStepIndex === activeSections.length - 1 ? 'Submit' : 'Continue'} <ChevronRight size={16} />
+                    {isSubmitting ? 'Submitting...' : safeStepIndex === activeSections.length - 1 ? 'Submit' : 'Continue'} <ChevronRight size={16} />
                 </button>
             </div>
         </div>

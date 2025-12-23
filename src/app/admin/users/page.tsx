@@ -4,6 +4,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Shield, ShieldAlert, Trash2, Loader2, UserPlus, Mail, Edit2, Check, X, Key, Copy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { deleteTeamMember } from '@/actions/delete-team-member'
+import { updateTeamMemberRole } from '@/actions/update-team-member-role'
+import { resetTeamMemberPassword } from '@/actions/reset-team-member-password'
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState<any[]>([])
@@ -100,30 +103,13 @@ export default function UserManagementPage() {
         if (!confirm(`Change this user's role to ${newRole.toUpperCase()}?`)) return
 
         try {
-            console.log('Attempting to update role for user:', userId, 'to:', newRole)
-            const { data, error: updateError } = await supabase
-                .from('profiles')
-                .update({ role: newRole })
-                .eq('id', userId)
-                .select()
-
-            console.log('Update result:', { data, error: updateError })
-
-            if (updateError) {
-                console.error('Role update failed:', updateError)
-                throw updateError
-            }
-
-            if (!data || data.length === 0) {
-                throw new Error('Update completed but no rows were affected. Check RLS policies.')
-            }
+            const result = await updateTeamMemberRole(userId, newRole)
+            if (result.error) throw new Error(result.error)
 
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
             alert(`Successfully changed role to ${newRole.toUpperCase()}`)
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                alert(`Error changing role: ${err.message}`)
-            }
+        } catch (err: any) {
+            alert(`Error changing role: ${err.message}`)
         }
     }
 
@@ -131,17 +117,12 @@ export default function UserManagementPage() {
         if (!confirm(`Are you sure you want to remove ${name}? This will revoke their access immediately.`)) return
 
         try {
-            const { error: deleteError } = await supabase
-                .from('profiles')
-                .delete()
-                .eq('id', userId)
+            const result = await deleteTeamMember(userId)
+            if (result.error) throw new Error(result.error)
 
-            if (deleteError) throw deleteError
             setUsers(users.filter(u => u.id !== userId))
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                alert(`Error: ${err.message}`)
-            }
+        } catch (err: any) {
+            alert(`Error: ${err.message}`)
         }
     }
 
@@ -166,25 +147,39 @@ export default function UserManagementPage() {
         const formData = new FormData(e.currentTarget)
 
         try {
-            // Import dynamically or at top - doing dynamic here for simplicity in this snippet Context
             const { createTeamMember } = await import('@/actions/create-team-member')
 
+            console.log('Creating team member with:', {
+                email: formData.get('email'),
+                name: formData.get('name'),
+                role: formData.get('role')
+            })
+
             const result = await createTeamMember(formData)
+
+            console.log('Create team member result:', result)
 
             if (result.error) {
                 alert(`Error: ${result.error}`)
                 return
             }
 
-            if (result.success && result.tempPassword) {
-                setTempPassword(result.tempPassword)
-                setNewMemberEmail(formData.get('email') as string)
+            if (result.success) {
+                if (result.tempPassword) {
+                    setTempPassword(result.tempPassword)
+                    setNewMemberEmail(formData.get('email') as string)
+                }
                 setIsAdding(false)
                 fetchData() // Refresh list
+                if (!result.tempPassword) {
+                    alert('Team member added successfully!')
+                }
+            } else {
+                alert('Unknown error: No success or error returned')
             }
-        } catch (err: unknown) {
-            console.error(err)
-            alert('An unexpected error occurred')
+        } catch (err: any) {
+            console.error('Add member exception:', err)
+            alert(`An unexpected error occurred: ${err?.message || 'Unknown'}`)
         }
     }
 
@@ -213,15 +208,11 @@ export default function UserManagementPage() {
     const triggerPasswordReset = async (email: string) => {
         if (!confirm(`Send a password reset link to ${email}?`)) return
         try {
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/login`,
-            })
-            if (resetError) throw resetError
+            const result = await resetTeamMemberPassword(email)
+            if (result.error) throw new Error(result.error)
             alert('Password reset email sent!')
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                alert(err.message)
-            }
+        } catch (err: any) {
+            alert(err.message)
         }
     }
 
