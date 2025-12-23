@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { signOut } from "@/actions/sign-out";
 
 export default function AdminLayout({
     children,
@@ -118,10 +119,7 @@ export default function AdminLayout({
                 </nav>
 
                 <div className="p-4 border-t border-neutral-800">
-                    <form action={async () => {
-                        const { signOut } = await import('@/actions/sign-out');
-                        await signOut();
-                    }}>
+                    <form action={signOut}>
                         <button
                             type="submit"
                             className="flex items-center gap-3 w-full px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"

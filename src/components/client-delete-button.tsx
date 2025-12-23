@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
+import { deleteClient } from "@/actions/delete-client"
 
 export function ClientDeleteButton({ clientId, clientName }: { clientId: string, clientName: string }) {
     const router = useRouter()
@@ -33,11 +34,6 @@ export function ClientDeleteButton({ clientId, clientName }: { clientId: string,
 
         setLoading(true)
         try {
-            // Import dynamically to avoid server action issues in client component if needed, 
-            // but standard import work in Next.js 14+ usually.
-            // Using direct import is improved.
-            const { deleteClient } = await import('@/actions/delete-client')
-
             const result = await deleteClient(clientId)
 
             if (result.success) {
