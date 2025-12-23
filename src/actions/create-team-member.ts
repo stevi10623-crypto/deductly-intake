@@ -1,6 +1,7 @@
 'use server'
 
 import { verifyAdmin } from './verify-admin'
+import { revalidatePath } from 'next/cache'
 
 export async function createTeamMember(formData: FormData) {
     const email = formData.get('email') as string
@@ -58,6 +59,8 @@ export async function createTeamMember(formData: FormData) {
 
         // Clean up any invites if they existed
         await adminClient.from('invites').delete().eq('email', email)
+
+        revalidatePath('/admin/users');
 
         return {
             success: true,

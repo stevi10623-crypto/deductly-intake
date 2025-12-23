@@ -1,6 +1,7 @@
 'use server'
 
 import { verifyAdmin } from './verify-admin'
+import { revalidatePath } from 'next/cache'
 
 export async function deleteTeamMember(userId: string) {
     console.log(`[DeleteTeam] Starting for userId: ${userId}`);
@@ -27,6 +28,7 @@ export async function deleteTeamMember(userId: string) {
         }
 
         console.log('[DeleteTeam] User deleted successfully');
+        revalidatePath('/admin/users');
         return { success: true };
     } catch (error: any) {
         console.error('[DeleteTeam] Exception:', error);

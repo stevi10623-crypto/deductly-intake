@@ -11,8 +11,11 @@ export async function verifyAdmin() {
 
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceRoleKey) {
-        throw new Error('Server configuration error: Missing service role key')
+        console.error('[VerifyAdmin] CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing from environment variables.');
+        throw new Error('Server configuration error: Missing service role key');
     }
+
+    console.log('[VerifyAdmin] Service role key found. Creating admin client...');
 
     // Use Admin Client to check profile to bypass RLS
     const adminClient = createClient(
@@ -26,14 +29,22 @@ export async function verifyAdmin() {
         }
     )
 
+    console.log('[VerifyAdmin] Checking role for user:', user.id);
+
     const { data: profile, error } = await adminClient
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single()
 
-    if (error || profile?.role !== 'admin') {
-        throw new Error('Unauthorized: Admin access required')
+    if (error) {
+        console.error('[VerifyAdmin] Profile fetch error:', error);
+        throw new Error(`Profile check failed: ${error.message}`);
+    }
+
+    if (profile?.role !== 'admin') {
+        console.warn('[VerifyAdmin] Non-admin access attempt by:', user.email);
+        throw new Error('Unauthorized: Admin access required');
     }
 
     return { user, adminClient }

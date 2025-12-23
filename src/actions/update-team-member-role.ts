@@ -1,6 +1,7 @@
 'use server'
 
 import { verifyAdmin } from './verify-admin'
+import { revalidatePath } from 'next/cache'
 
 export async function updateTeamMemberRole(userId: string, newRole: string) {
     console.log(`[RoleUpdate] Starting for userId: ${userId} to role: ${newRole}`);
@@ -20,6 +21,7 @@ export async function updateTeamMemberRole(userId: string, newRole: string) {
         }
 
         console.log('[RoleUpdate] Profile updated successfully. Result:', data);
+        revalidatePath('/admin/users');
         return { success: true };
     } catch (error: any) {
         console.error('[RoleUpdate] Exception:', error);

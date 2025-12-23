@@ -118,13 +118,18 @@ export default function AdminLayout({
                 </nav>
 
                 <div className="p-4 border-t border-neutral-800">
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"
-                    >
-                        <LogOut size={16} />
-                        <span>Sign Out</span>
-                    </button>
+                    <form action={async () => {
+                        const { signOut } = await import('@/actions/sign-out');
+                        await signOut();
+                    }}>
+                        <button
+                            type="submit"
+                            className="flex items-center gap-3 w-full px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"
+                        >
+                            <LogOut size={16} />
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
                 </div>
             </aside>
 
