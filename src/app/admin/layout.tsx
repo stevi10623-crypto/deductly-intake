@@ -45,8 +45,16 @@ export default function AdminLayout({
     }, []);
 
     async function handleLogout() {
-        if (confirm('Are you sure you want to log out?')) {
-            await supabase.auth.signOut();
+        if (!confirm('Are you sure you want to log out?')) return;
+
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            router.push('/login');
+        } catch (error: any) {
+            console.error('Logout error:', error);
+            alert(`Failed to sign out: ${error?.message || 'Unknown error'}`);
+            // Force redirect anyway on error to avoid being stuck
             router.push('/login');
         }
     }
