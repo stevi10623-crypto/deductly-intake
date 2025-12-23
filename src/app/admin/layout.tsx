@@ -48,13 +48,14 @@ export default function AdminLayout({
         if (!confirm('Are you sure you want to log out?')) return;
 
         try {
-            const { signOut } = await import('@/actions/sign-out')
-            await signOut()
+            // Sign out from Supabase client
+            await supabase.auth.signOut();
         } catch (error: any) {
-            console.error('Logout error:', error)
+            console.error('Logout error:', error);
         }
-        // Always redirect regardless of result
-        window.location.href = '/login'
+
+        // Force a hard reload to the login page to clear all client state
+        window.location.href = '/login';
     }
 
     // Close sidebar when clicking a nav item on mobile

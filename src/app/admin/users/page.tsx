@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { deleteTeamMember } from '@/actions/delete-team-member'
 import { updateTeamMemberRole } from '@/actions/update-team-member-role'
 import { resetTeamMemberPassword } from '@/actions/reset-team-member-password'
+import { getTeamManagementData } from '@/actions/get-team-data'
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState<any[]>([])
@@ -31,58 +32,32 @@ export default function UserManagementPage() {
 
     const fetchData = useCallback(async () => {
         try {
+            // Get current user for UI state
             const { data: { user: authUser } } = await supabase.auth.getUser()
             if (!authUser) {
                 router.push('/login')
                 return
             }
 
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', authUser.id)
-                .maybeSingle()
+            // Fetch team data via server action (Admin API)
+            const result = await getTeamManagementData()
 
-            setCurrentUser(profile)
-
-            if (!profile) {
-                setError('Profile not found. Please try logging out and back in.')
-                setLoading(false)
-                return
-            }
-
-            if (profile.role !== 'admin') {
-                setError('Unauthorized: You do not have permission to access this page.')
-                setLoading(false)
-                return
-            }
-
-            // Fetch actual users
-            const { data: allProfiles, error: profilesError } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('full_name')
-
-            if (profilesError) throw profilesError
-            setUsers(allProfiles || [])
-
-            // Fetch pending invites
-            const { data: allInvites, error: invitesError } = await supabase
-                .from('invites')
-                .select('*')
-                .order('created_at', { ascending: false })
-
-            if (invitesError) {
-                // If the table doesn't exist, we'll see a specific error here
-                if (invitesError.code === '42P01') {
-                    console.warn('Invitations table not found. Please run the SQL setup script.')
+            if (result.error) {
+                if (result.error.includes('Unauthorized')) {
+                    setError('Unauthorized: You do not have permission to access this page.')
                 } else {
-                    console.error('Error fetching invites:', invitesError)
+                    setError(result.error)
                 }
-                setInvites([])
-            } else {
-                setInvites(allInvites || [])
+                setLoading(false)
+                return
             }
+
+            // Sync current user role from profiles list if possible, or fallback
+            const myProfile = result.profiles?.find((p: any) => p.id === authUser.id)
+            setCurrentUser(myProfile || { id: authUser.id, role: 'admin' }) // Assume admin if can fetch this data
+
+            setUsers(result.profiles || [])
+            setInvites(result.invites || [])
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message)
