@@ -41,11 +41,12 @@ export function ClientDeleteButton({ clientId, clientName }: { clientId: string,
             if (!error) {
                 router.push('/admin/clients')
             } else {
-                alert(`Error: ${error.message}`)
+                console.error("Delete Error details:", error)
+                alert(`Error deleting client: ${error.message} (Code: ${error.code})`)
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Delete failed", error)
-            alert("Failed to delete client.")
+            alert(`Failed to delete client. \n\nDetails: ${error?.message || 'Unknown error'}`)
         } finally {
             setLoading(false)
         }
