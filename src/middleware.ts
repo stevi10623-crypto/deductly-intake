@@ -29,7 +29,17 @@ export async function updateSession(request: NextRequest) {
 
     // Do not use supabase.auth.getUser() here if you don't need to protect routes in middleware.
     // Just refreshing the session is enough for the client to stay synced.
-    await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Protected routes logic
+    if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Redirect logged in users away from login/signup
+    if (request.nextUrl.pathname.startsWith('/login') && user) {
+        return NextResponse.redirect(new URL('/admin', request.url))
+    }
 
     return supabaseResponse
 }

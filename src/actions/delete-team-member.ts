@@ -6,32 +6,31 @@ import { revalidatePath } from 'next/cache'
 export async function deleteTeamMember(userId: string) {
     console.log(`[DeleteTeam] Starting for userId: ${userId}`);
     try {
-        const { adminClient, user: initiator } = await verifyAdmin();
-        console.log(`[DeleteTeam] Admin verified. Initiator: ${initiator.email}`);
+        const { adminClient } = await verifyAdmin()
 
-        // 1. Explicitly delete from profiles table first (in case of cascade issues)
+        // 1. Explicitly delete from profiles first to ensure clean removal
         const { error: profileError } = await adminClient
             .from('profiles')
             .delete()
-            .eq('id', userId);
+            .eq('id', userId)
 
         if (profileError) {
-            console.warn('[DeleteTeam] Warning: Profile deletion error (may already be gone):', profileError);
+            console.error('[DeleteTeamMember] Profile deletion error:', profileError)
+            return { error: `Profile deletion failed: ${profileError.message}` }
         }
 
         // 2. Delete from Auth
-        const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
-
-        if (deleteError) {
-            console.error('[DeleteTeam] Error deleting auth user:', deleteError);
-            return { error: deleteError.message };
+        const { error: authError } = await adminClient.auth.admin.deleteUser(userId)
+        if (authError) {
+            console.error('[DeleteTeamMember] Auth deletion error:', authError)
+            return { error: `Auth deletion failed: ${authError.message}` }
         }
 
-        console.log('[DeleteTeam] User deleted successfully');
-        revalidatePath('/admin/users');
-        return { success: true };
+        console.log('[DeleteTeamMember] Success. Revalidating path...');
+        revalidatePath('/admin/users')
+        return { success: true }
     } catch (error: any) {
-        console.error('[DeleteTeam] Exception:', error);
-        return { error: error.message };
+        console.error('[DeleteTeamMember] Exception:', error)
+        return { error: error.message }
     }
 }

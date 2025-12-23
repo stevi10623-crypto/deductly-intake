@@ -4,27 +4,26 @@ import { verifyAdmin } from './verify-admin'
 import { revalidatePath } from 'next/cache'
 
 export async function updateTeamMemberRole(userId: string, newRole: string) {
-    console.log(`[RoleUpdate] Starting for userId: ${userId} to role: ${newRole}`);
+    console.log(`[UpdateRole] Changing userId: ${userId} to role: ${newRole}`);
     try {
-        const { adminClient, user: initiator } = await verifyAdmin();
-        console.log(`[RoleUpdate] Admin verified. Initiator: ${initiator.email}`);
+        const { adminClient } = await verifyAdmin()
 
         const { data, error: updateError } = await adminClient
             .from('profiles')
             .update({ role: newRole })
             .eq('id', userId)
-            .select();
+            .select()
 
         if (updateError) {
-            console.error('[RoleUpdate] Error updating profile:', updateError);
-            return { error: updateError.message };
+            console.error('[UpdateRole] Database error:', updateError)
+            return { error: updateError.message }
         }
 
-        console.log('[RoleUpdate] Profile updated successfully. Result:', data);
-        revalidatePath('/admin/users');
-        return { success: true };
+        console.log('[UpdateRole] Success. Data:', data);
+        revalidatePath('/admin/users')
+        return { success: true }
     } catch (error: any) {
-        console.error('[RoleUpdate] Exception:', error);
-        return { error: error.message };
+        console.error('[UpdateRole] Exception:', error)
+        return { error: error.message }
     }
 }
