@@ -3,19 +3,33 @@
 import { verifyAdmin } from './verify-admin'
 
 export async function deleteTeamMember(userId: string) {
+    console.log(`[DeleteTeam] Starting for userId: ${userId}`);
     try {
-        const { adminClient } = await verifyAdmin()
+        const { adminClient, user: initiator } = await verifyAdmin();
+        console.log(`[DeleteTeam] Admin verified. Initiator: ${initiator.email}`);
 
-        const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId)
+        // 1. Explicitly delete from profiles table first (in case of cascade issues)
+        const { error: profileError } = await adminClient
+            .from('profiles')
+            .delete()
+            .eq('id', userId);
 
-        if (deleteError) {
-            console.error('Error deleting user:', deleteError)
-            return { error: deleteError.message }
+        if (profileError) {
+            console.warn('[DeleteTeam] Warning: Profile deletion error (may already be gone):', profileError);
         }
 
-        return { success: true }
+        // 2. Delete from Auth
+        const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+
+        if (deleteError) {
+            console.error('[DeleteTeam] Error deleting auth user:', deleteError);
+            return { error: deleteError.message };
+        }
+
+        console.log('[DeleteTeam] User deleted successfully');
+        return { success: true };
     } catch (error: any) {
-        console.error('deleteTeamMember error:', error)
-        return { error: error.message }
+        console.error('[DeleteTeam] Exception:', error);
+        return { error: error.message };
     }
 }

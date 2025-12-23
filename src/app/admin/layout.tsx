@@ -45,27 +45,14 @@ export default function AdminLayout({
     }, []);
 
     async function handleLogout() {
-        // We'll remove the confirm for now to make logout as robust as possible
         try {
-            // 1. Manually clear Supabase cookies as a failsafe
-            document.cookie.split(";").forEach((c) => {
-                const cookie = c.trim();
-                // Supabase SSR uses cookies like sb-xxx-auth-token-code-verifier
-                if (cookie.startsWith("sb-")) {
-                    const eqPos = cookie.indexOf("=");
-                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-                }
-            });
-
-            // 2. Call sign out without blocking the redirect
-            supabase.auth.signOut().catch(() => { });
+            const { signOut } = await import('@/actions/sign-out');
+            await signOut();
         } catch (error: any) {
             console.error('Logout error:', error);
+            // Fallback if server action fails
+            window.location.href = '/login?error=logout_failed';
         }
-
-        // 3. Force an immediate hard reload to the login page with a cache buster
-        window.location.href = '/login?logout=' + Date.now();
     }
 
     // Close sidebar when clicking a nav item on mobile

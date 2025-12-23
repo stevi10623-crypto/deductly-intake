@@ -3,22 +3,26 @@
 import { verifyAdmin } from './verify-admin'
 
 export async function updateTeamMemberRole(userId: string, newRole: string) {
+    console.log(`[RoleUpdate] Starting for userId: ${userId} to role: ${newRole}`);
     try {
-        const { adminClient } = await verifyAdmin()
+        const { adminClient, user: initiator } = await verifyAdmin();
+        console.log(`[RoleUpdate] Admin verified. Initiator: ${initiator.email}`);
 
-        const { error: updateError } = await adminClient
+        const { data, error: updateError } = await adminClient
             .from('profiles')
             .update({ role: newRole })
             .eq('id', userId)
+            .select();
 
         if (updateError) {
-            console.error('Error updating role:', updateError)
-            return { error: updateError.message }
+            console.error('[RoleUpdate] Error updating profile:', updateError);
+            return { error: updateError.message };
         }
 
-        return { success: true }
+        console.log('[RoleUpdate] Profile updated successfully. Result:', data);
+        return { success: true };
     } catch (error: any) {
-        console.error('updateTeamMemberRole error:', error)
-        return { error: error.message }
+        console.error('[RoleUpdate] Exception:', error);
+        return { error: error.message };
     }
 }

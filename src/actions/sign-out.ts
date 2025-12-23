@@ -1,15 +1,16 @@
 'use server'
 
-import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export async function signOut() {
-    const supabase = await createServerClient()
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signOut()
 
-    try {
-        await supabase.auth.signOut()
-        return { success: true }
-    } catch (error) {
-        console.error('Sign out error:', error)
-        return { success: false }
+    if (error) {
+        console.error('Sign out server error:', error)
     }
+
+    // Force redirect from server to ensure cookies are wiped correctly
+    redirect('/login?logout=success')
 }
