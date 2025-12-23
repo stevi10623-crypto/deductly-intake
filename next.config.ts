@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  /* output: 'export', // Disabled to support Server Actions */
   images: {
-    unoptimized: true,
+    /* unoptimized: true, // Disabled, Vercel supports optimization */
     remotePatterns: [
       {
         protocol: 'https',
